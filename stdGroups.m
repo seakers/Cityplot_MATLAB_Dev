@@ -1,5 +1,6 @@
 %%turns the grouping indicies (archs) into a cellarray of actual indicies
 %%ie. [1,1,2,3] |-> {[1,2], [3], [4]}
+%%and [[1,1,2,3];[1,1,2,3]] |-> {{[1,2], [3], [4]};{[1,2], [3], [4]}}
 function [archGroups]=stdGroups(archs)
 archGroups=cell(size(archs,1),1);
 for i=1:size(archs,1)
