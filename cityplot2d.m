@@ -8,8 +8,8 @@ hold on
 %met=[results.sciences,results.costs];
 
 plotting=mdscale(dist,2);
-colorEdgeByDist(dist,plotting,eye(3));
-nodesWithBarGraph(plotting,metrics,range(plotting,1)/5,varargin{:})
+colorEdgeByDist(dist,plotting,'auto');
+nodesWithBarGraph(plotting,metrics,range(plotting(:,2))/20,varargin{:})
 
 hold off
 end
