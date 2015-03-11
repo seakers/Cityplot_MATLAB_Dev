@@ -1,4 +1,4 @@
-function cityplot2d(dist, metrics)
+function cityplot2d(dist, metrics,varargin)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 figure
@@ -9,7 +9,7 @@ hold on
 
 plotting=mdscale(dist,2);
 colorEdgeByDist(dist,plotting,eye(3));
-nodesWithBarGraph(plotting,metrics,range(plotting(:,2))/10)
+nodesWithBarGraph(plotting,metrics,range(plotting,1)/5,varargin{:})
 
 hold off
 end
