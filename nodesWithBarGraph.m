@@ -36,7 +36,7 @@ for(i=1:size(plotting,1))
         if(rectHeight(i,metI)>0)
             adjust=rectWidth*(metI-1);
 %             RH(metI)=rectangle('Position',[plotting(i,1)+adjust,plotting(i,2),rectWidth,rectHeight(i,metI)],'FaceColor',colorcycle(mod(metI,length(colorcycle))+1),'Parent',ax2);
-              RH(metI)=rectagle('Position',[plotting(i,1)+adjust,plotting(i,2),rectWidth,rectHeight(i,metI)],'FaceColor',colorcycle(mod(metI,length(colorcycle))+1));
+              RH(metI)=rectangle('Position',[plotting(i,1)+adjust,plotting(i,2),rectWidth,rectHeight(i,metI)],'FaceColor',colorcycle(mod(metI,length(colorcycle))+1));
         end
     end
     if(chkAnnotate && haveText(i)>0 && ~isnan(haveText(i)) && ~isempty(textContent{haveText(i)}))
