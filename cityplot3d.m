@@ -14,7 +14,8 @@ hold on
 nMet=metrics-repmat(min(metrics,[],1),size(metrics,1),1); 
 nMet=nMet./repmat(max(nMet,[],1),size(nMet,1),1);
 
-plotting=mdscale(dist,2);
+plotting=mdscale(dist,2,'Criterion','sammon'); %seems to fix when wild caraitions in distance
+% plotting=mdscale(dist,2); %classic
 colorEdgeByDist3d(dist,plotting,'auto');
 nodesWithBarGraph3d(plotting,nMet,range(plotting(:,2))/10)
 campos([7.2964  -17.4457    8.8248]);

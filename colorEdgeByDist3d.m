@@ -8,12 +8,13 @@ if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
     targetConn=size(distances,1)*3;
     tmp=triu(distances,1);
     cnts=histc(tmp(:),[0,(1:max(max(distances)))-1/2]);
-    [~,maxDist]=min(abs(cumsum(cnts(2:end))-targetConn)); 
-    maxDist=maxDist-1-(cnts(maxDist)>targetConn);
-    numDistUsed=sum(cnts(2:maxDist)>0);
+    willConn=cumsum(cnts(2:end));
+    [~,maxDist]=min(abs(willConn-targetConn)); 
+    maxDist=maxDist-(willConn(maxDist)>targetConn);
+    numDistUsed=sum(cnts(2:maxDist+1)>0);
     lineColors=hsv2rgb([linspace(0,2/3,numDistUsed)',ones(numDistUsed,2)]);
     
-    distUsed=find(cnts(2:maxDist)>0,numDistUsed);
+    distUsed=find(cnts(2:maxDist+1)>0,numDistUsed);
     
     for(i=1:size(lineColors,1))
         plot3(0,0,0,'Color',lineColors(i,:));
