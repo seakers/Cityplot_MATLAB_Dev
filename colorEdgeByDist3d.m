@@ -4,13 +4,35 @@ compareIndxs=nchoosek(1:size(plotLocs,1),2);
 %%lines by distance and color. give legend by hggroup.
 
 if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
+    useAuto=true;
     targetConn=size(distances,1)*3;
     tmp=triu(distances,1);
     cnts=histc(tmp(:),[0,(1:max(max(distances)))-1/2]);
-    [~,maxDist]=min(abs(cnts-targetConn)); 
+    [~,maxDist]=min(abs(cumsum(cnts(2:end))-targetConn)); 
     maxDist=maxDist-1-(cnts(maxDist)>targetConn);
-    lineColors=hsv2rgb([linspace(0,2/3,maxDist)',ones(maxDist,2)]);
-end
+    numDistUsed=sum(cnts(2:maxDist)>0);
+    lineColors=hsv2rgb([linspace(0,2/3,numDistUsed)',ones(numDistUsed,2)]);
+    
+    distUsed=find(cnts(2:maxDist)>0,numDistUsed);
+    
+    for(i=1:size(lineColors,1))
+        plot3(0,0,0,'Color',lineColors(i,:));
+    end
+    legend(num2str(distUsed));
+    
+    for(i=1:size(compareIndxs))
+        indx1=compareIndxs(i,1);
+        indx2=compareIndxs(i,2);
+        dist=distances(indx1,indx2);
+        
+        [~,clrIndx]=ismember(dist,distUsed);
+        if(clrIndx>0)
+            pt1=plotLocs(indx1,:);
+            pt2=plotLocs(indx2,:);
+            plot3([pt1(1);pt2(1)],[pt1(2);pt2(2)],[0;0],'Color',lineColors(clrIndx,:));
+        end
+    end
+else
 
 for(i=1:size(lineColors,1))
     plot3(0,0,0,'Color',lineColors(i,:));
@@ -30,5 +52,6 @@ for(i=1:size(compareIndxs,1))
             plot3([pt1(1);pt2(1)],[pt1(2);pt2(2)],[0;0],'Color',lineColors(dist,:));
         end
     end
+end
 end
 return
