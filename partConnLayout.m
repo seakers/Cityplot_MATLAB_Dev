@@ -10,30 +10,34 @@ layout(fulldisjoint,:)=[0,0];
 indxr=1:size(archs,1);
 
 %% layout x axis so connections done in layers
-frontier=indxr(connect(fulldisjoint,:));
+frontier=indxr(logical(connect(fulldisjoint,:)));
 past=fulldisjoint;
+pos=1;
 while(~isempty(frontier))
     layout(frontier,1)=pos;
     
-    past=union(past,frontier,'rows');
-    frontier=setdiff(indxr(connect(frontier,:)),past,'rows');
+    past=union(past,frontier);
+    frontier=setdiff(indxr(any(connect(frontier,:),1)),past);
     
-    inc=inc+1;
+    pos=pos+inc;
 end
 
 %% layout y axis to try and minimize crossings greedily
-frontier=indxr(connect(fulldisjoint,:));
+frontier=indxr(logical(connect(fulldisjoint,:)));
 past=fulldisjoint;
+prevFront=fulldisjoint;
 while(~isempty(frontier))
-    layout(frontier,2)=fminsearch(@(y) numCross(connect,[layout([prevFront;frontier],1),[layout(prevFront,2);y]]),zeros(size(frontier,1),1));
+    initGuess=[1:numel(frontier)]'; initGuess=initGuess-mean(initGuess);
+    layout(frontier,2)=fminsearch(@(y) numCross(connect,[layout([prevFront,frontier],1),[layout(prevFront,2);y]])...
+                                    ,initGuess);
     prevFront=frontier;
-    past=union(past,frontier,'rows');
-    frontier=setdiff(indxr(connect(frontier,:)),past,'rows');
+    past=union(past,frontier);
+    frontier=setdiff(indxr(any(connect(frontier,:),1)),past);
 end
 
 return
 
 % final step is: 
-%[conn,archs]=getPartConnect(4);
+% [conn,archs]=getPartConnect(6);
 % xy=partConnLayout(conn,archs); 
 % gplot(conn,xy);
