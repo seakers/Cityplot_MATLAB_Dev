@@ -1,4 +1,6 @@
-%% fixes an architecture in the situation where it fails to meet requisite specs.
+%%repairs partitioning schemes that violate the max value of 1,2,3...
+%%constraint.
+%%does not repair non-integer solutions.
 function archs=partRepair(archs)
     for(oneArch=1:size(archs,1))
         arch=archs(oneArch,:);
