@@ -21,9 +21,20 @@ colorEdgeByDist3d(dist,plotting,'auto');
 nodesWithBarGraph3d(plotting,nMet,range(plotting(:,2))/10)
 view([0,90]) %directly overhead view
 
-archLbls=cell(size(archs,1),1);
-for(i=1:size(archs,1))
-    archLbls{i}=regexprep(num2str(archs(i,:)),'\s','');
+if(isnumeric(archs))
+    archLbls=cell(size(archs,1),1);
+    for(i=1:size(archs,1))
+        archLbls{i}=num2str(archs(i,:));
+    end
+else
+    if(iscell(archs))
+        archLbls=archs;
+    else
+        archLbls=cell(size(archs,1),1);
+        for(i=1:size(archs,1))
+            archLbls{i}=archs(i,:);
+        end
+    end
 end
 
 base_metLbls={'science','cost','programmatic risk','fairness'};

@@ -22,9 +22,20 @@ nodesWithBarGraph3d(plotting,nMet,range(plotting(:,2))/10)
 campos([7.2964  -17.4457    8.8248]);
 % view([18,85]);
 
-archLbls=cell(size(archs,1),1);
-for(i=1:size(archs,1))
-    archLbls{i}=num2str(archs(i,:));
+if(isnumeric(archs))
+    archLbls=cell(size(archs,1),1);
+    for(i=1:size(archs,1))
+        archLbls{i}=num2str(archs(i,:));
+    end
+else
+    if(iscell(archs))
+        archLbls=archs;
+    else
+        archLbls=cell(size(archs,1),1);
+        for(i=1:size(archs,1))
+            archLbls{i}=archs(i,:);
+        end
+    end
 end
 
 base_metLbls={'science','cost','programmatic risk','fairness'};
