@@ -10,14 +10,24 @@ if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
     useAuto=true;
     targetConn=size(distances,1)*targetMult;
     tmp=triu(distances,1);
-    cnts=histc(tmp(:),[0,(1:max(max(distances)))-1/2]);
-    willConn=cumsum(cnts(2:end));
-    [~,maxDist]=min(abs(willConn-targetConn)); 
-    maxDist=maxDist-(willConn(maxDist)>targetConn);
-    numDistUsed=sum(cnts(2:maxDist+1)>0);
-    distUsed=find(cnts(2:maxDist+1)>0,numDistUsed);
+    if(max(abs(distances-floor(distances)))<1e-13) % if integer distances
+        nonint=false;
+        cnts=histc(tmp(:),[0,1:max(max(distances))]);
+        willConn=cumsum(cnts(2:end));
+        [~,maxDist]=min(abs(willConn-targetConn)); 
+        maxDist=maxDist-(willConn(maxDist)>targetConn);
+        numDistUsed=sum(cnts(2:maxDist+1)>0);
+        distUsed=find(cnts(2:maxDist+1)>0,numDistUsed);
+    else
+        nonint=true;
+        cln=tmp(tmp>0);
+        [~,sortI]=sort(cln);
+        distUsed=cln(sortI(1:min(targetConn,length(cln))));
+        maxDist=max(distUsed);
+        numDistUsed=maxDist;
+    end
     
-    if(numDistUsed>cap) %won't be able to see entire legend
+    if(numDistUsed>cap || nonint) %won't be able to see entire legend
         useGrouping=true;
         boundingLims=linspace(min(distUsed),max(distUsed),cap);
 %         div=floor(range(distUsed)/cap);
@@ -33,8 +43,12 @@ if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
         plot3(0,0,0,'Color',lineColors(i,:));
     end
     if(useGrouping)
-        legend([num2str(boundingLims(1:end-1)'),repmat('-',length(boundingLims)-1,1),num2str(boundingLims(2:end)')],...
-            'Location','Best');
+        if(nonint)
+            limsStr=[num2str(boundingLims(1:end-1)','%4.2g'),repmat('-',length(boundingLims)-1,1),num2str(boundingLims(2:end)','%4.2g')];
+        else
+            limsStr=[num2str(boundingLims(1:end-1)'),repmat('-',length(boundingLims)-1,1),num2str(boundingLims(2:end)')];
+        end
+        legend(limsStr,'Location','Best');
     else
         legend(num2str(distUsed), 'Location','Best');
     end
