@@ -1,6 +1,27 @@
 function colorEdgeByDist3d(distances,plotLocs,lineColors)
+%%plots the edges of the graph by color coding by distance
+%%assumes distances is upper triangular or symmetric (i.e. the graph is
+%%unidirected)
+%%inputs:
+%%distances: an NxN adjacency matrix of the ditances between corresponding nodes
+%%distances <=0 are assumed to not exist.
+%%plotLocs: locations of points in the cube to be plotted. Either Nx2 or
+%%Nx3. If given as Nx2 will place all edges/nodes in the z=0 plane
+%%lineColors: A colormap that assigns colors to values. alternatively,
+%%leave blank or type 'auto' and will attempt to plot something like 15*#ofNodes worth of smallest edges 
+%%equally space values across the 'jet' colormap.
+%%outputs:
+%%-none-
+
 cap=15;
 targetMult=3;
+
+if(size(plotLocs,2)==1)
+    plotLocs=[plotLocs,zeros(size(plotLocs,1),2)];
+end
+if(size(plotLocs,2)==2)
+    plotLocs=[plotLocs,zeros(size(plotLocs,1),1)];
+end
 
 compareIndxs=nchoosek(1:size(plotLocs,1),2);
 %%TODO replace the following hack for the legend with hggroup to group
@@ -25,6 +46,10 @@ if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
         distUsed=cln(sortI(1:min(targetConn,length(cln))));
         maxDist=max(distUsed);
         numDistUsed=maxDist;
+    end
+    
+    if(issparse(distUsed))
+        distUsed=full(distUsed);
     end
     
     if(numDistUsed>cap || nonint) %won't be able to see entire legend
@@ -62,7 +87,7 @@ if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
         if(clrIndx>0)
             pt1=plotLocs(indx1,:);
             pt2=plotLocs(indx2,:);
-            plot3([pt1(1);pt2(1)],[pt1(2);pt2(2)],[0;0],'Color',lineColors(ind(clrIndx),:));
+            plot3([pt1(1);pt2(1)],[pt1(2);pt2(2)],[pt1(3);pt2(3)],'Color',lineColors(ind(clrIndx),:));
         end
     end
 else
@@ -82,7 +107,7 @@ for(i=1:size(compareIndxs,1))
         if(distBins(distOrder)<dist && dist<=distBins(distOrder+1))
             pt1=plotLocs(indx1,:);
             pt2=plotLocs(indx2,:);
-            plot3([pt1(1);pt2(1)],[pt1(2);pt2(2)],[0;0],'Color',lineColors(dist,:));
+            plot3([pt1(1);pt2(1)],[pt1(2);pt2(2)],[pt3;pt3],'Color',lineColors(dist,:));
         end
     end
 end
