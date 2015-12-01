@@ -14,9 +14,9 @@ hold on
 nMet=metrics-repmat(min(metrics,[],1),size(metrics,1),1); 
 nMet=nMet./repmat(max(nMet,[],1),size(nMet,1),1);
 
-% plotting=mdscale(dist,2,'Criterion','sammon'); %seems to fix when wild variations in distance
+plotting=mdscale(dist,2,'Criterion','sammon'); %seems to fix when wild variations in distance
 % plotting=mdscale(dist,2); %Kruskal's Normalized Stress. "Classic"
-plotting=cmdscale(dist); plotting=plotting(:,1:min(2,size(plotting,2)));
+% plotting=cmdscale(dist); plotting=plotting(:,1:min(2,size(plotting,2)));
 colorEdgeByDist3d(dist,plotting,'auto');
 nodesWithBarGraph3d(plotting,nMet,range(plotting(:,2))/10)
 campos([7.2964  -17.4457    8.8248]);
@@ -38,18 +38,27 @@ else
     end
 end
 
-base_metLbls={'science','cost','programmatic risk','fairness'};
-metLbls=base_metLbls(1:size(metrics,2));
-aug_metLbls=cell(numel(metLbls)*2,1);
-for(i=1:size(metLbls,2))
-    aug_metLbls{i}=metLbls{i};
-    aug_metLbls{(i-1)*2+1}=['normalized ',metLbls{i}];
+%%create data cursor window
+% base_metLbls={'science','cost','programmatic risk','fairness'};
+% metLbls=mat2cell(base_metLbls(1:size(metrics,2)));
+% aug_metLbls=cell(numel(metLbls)*2,1);
+% for(i=1:size(metLbls,2))
+%     aug_metLbls{i}=metLbls{i};
+%     aug_metLbls{(i-1)*2+1}=['normalized ',metLbls{i}];
+% end
+% 
+% hdt = datacursormode;
+% set(hdt,'DisplayStyle','window');
+% set(hdt,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plotting,1),1)],archLbls,...
+%     aug_metLbls,[metrics,nMet]});
+metLblsStr=num2str([1:size(metrics,2)]');
+metLbls=cell(size(metrics,2),1);
+for(i=1:size(metLbls,1))
+    metLbls{i}=['objective', metLblsStr(i,:),': '];
 end
-
 hdt = datacursormode;
 set(hdt,'DisplayStyle','window');
-set(hdt,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plotting,1),1)],archLbls,...
-    aug_metLbls,[metrics,nMet]});
+set(hdt,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plotting,1),1)],archLbls,metLbls,metrics});
 
 hold off
 end

@@ -14,6 +14,7 @@ function colorEdgeByDist3d(distances,plotLocs,lineColors)
 %%-none-
 
 cap=15;
+% targetMult=10;
 targetMult=3;
 
 if(size(plotLocs,2)==1)
@@ -23,21 +24,31 @@ if(size(plotLocs,2)==2)
     plotLocs=[plotLocs,zeros(size(plotLocs,1),1)];
 end
 
+if(~all(size(distances)-[1,1]) || size(plotLocs,1)==1)
+    warning('trying to plot single vertex graph');
+    return
+end
+
 compareIndxs=nchoosek(1:size(plotLocs,1),2);
 %%TODO replace the following hack for the legend with hggroup to group
 %%lines by distance and color. give legend by hggroup.
 
 if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
     useAuto=true;
-    targetConn=size(distances,1)*targetMult;
+%     targetConn=size(distances,1)*targetMult; % based on guesswork and some trial and error
+    targetConn=floor(size(distances,1)*log(size(distances,1))); % expected number of edges for a single connected component. See pg 82 of Hopcroft Kannan Foundations of Data Science.
     tmp=triu(distances,1);
     if(max(abs(distances-floor(distances)))<1e-13) % if integer distances
         nonint=false;
         cnts=histc(tmp(:),[0,1:max(max(distances))]);
         willConn=cumsum(cnts(2:end));
-        [~,maxDist]=min(abs(willConn-targetConn)); 
-        maxDist=maxDist-(willConn(maxDist)>targetConn);
+        [~,maxDist]=min(abs(willConn-targetConn)); %max Dist will use
+        maxDist=maxDist-(willConn(maxDist)>targetConn); % negative adjustment: removes distances to use to make it so the number of lines does no exceed the target distance
         numDistUsed=sum(cnts(2:maxDist+1)>0);
+        if(numDistUsed==0)
+            maxDist=find(willConn(2:end),1)+1;
+            numDistUsed=willConn(maxDist);
+        end
         distUsed=find(cnts(2:maxDist+1)>0,numDistUsed);
     else
         nonint=true;
@@ -71,7 +82,7 @@ if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
         if(nonint)
             limsStr=[num2str(boundingLims(1:end-1)','%4.2g'),repmat('-',length(boundingLims)-1,1),num2str(boundingLims(2:end)','%4.2g')];
         else
-            limsStr=[num2str(boundingLims(1:end-1)'),repmat('-',length(boundingLims)-1,1),num2str(boundingLims(2:end)')];
+            limsStr=[num2str(floor(boundingLims(1:end-1))'),repmat('-',length(boundingLims)-1,1),num2str(floor(boundingLims(2:end)')-1)]; % bins are inclusive on lower limit.
         end
         legend(limsStr,'Location','Best');
     else
