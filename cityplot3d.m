@@ -1,4 +1,4 @@
-function cityplot3d(dist, metrics, archs)
+function [plotting,hdt]=cityplot3d(dist, metrics, archs)
 %cityplot3d Makes a 3d plot with bar graphs indicating the metrics at each
 %architecture and the position of the architecture minimizing the squared
 %error distance to the other points as given in dist matrix.
