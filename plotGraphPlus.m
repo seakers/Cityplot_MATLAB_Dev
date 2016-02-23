@@ -23,13 +23,15 @@ function handle=plotGraphPlus(handle,pointLocs,edges,edgeColors, nodeColors ,edg
     else
         [m,n]=size(nodeColors);
         if(m==1 || n==1)
-            colorsMap=colormap(handle);
-            refDists=linspace(min(nodeColors),max(nodeColors),size(colorsMap,1));
-            if(min(nodeColors)==max(nodeColors))
-                nodeColors=repmat(colorsMap(ceil(size(colorsMap,1)/2),:),size(nodeColors,1),1);
-            else
+            uChk=unique(nodeColors);
+            if(length(uChk)>=2)
+                colorsMap=colormap(handle);
+                refDists=linspace(min(nodeColors),max(nodeColors),size(colorsMap,1));
                 nodeColors=interp1(refDists,colorsMap,nodeColors);
+            else
+                nodeColors=repmat('b',size(nodeColors,1),1);
             end
+
         end
     end
 
@@ -51,6 +53,11 @@ function handle=plotGraphPlus(handle,pointLocs,edges,edgeColors, nodeColors ,edg
             text(txtX,txtY,nodeStrs{indx});
         end
     end
+    
+    %%TODO swap order of nodes and edges. Tricky because need to make sure
+    %%plot is the correct size to fit all nodes /before/ laying down
+    %%edges--and there may not be edges to the extreme points that set the
+    %%figure axis limits.
 
     %% plotting edges
     if(~isempty(edges))
@@ -72,6 +79,18 @@ function handle=plotGraphPlus(handle,pointLocs,edges,edgeColors, nodeColors ,edg
             colorsMap=colormap(handle);
             refDists=linspace(min(dists),max(dists),size(colorsMap,1));
             edgeColors=interp1(refDists,colorsMap,dists);
+        else
+            [m,n]=size(edgeColors);
+            if((m==1 || n==1) && isnumeric(edgeColors))
+                uChk=unique(edgeColors);
+                if(length(uChk)>2)
+                    colorsMap=colormap(handle);
+                    refDists=linspace(min(edgeColors),max(edgeColors),size(colorsMap,1));
+                    edgeColors=interp1(refDists,colorsMap,edgeColors);
+                else
+                    edgeColors=repmat('r',size(edgeColors,1),1);
+                end
+            end
         end
 
         for(indx=1:size(edgeEndpoint1,1))
