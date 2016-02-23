@@ -1,4 +1,4 @@
-function [plotting,hdt]=cityplot3d(dist, metrics, archs)
+function [plotting,nMet,pltOpts,hdt]=cityplot3d(dist, metrics, archs, varargin)
 %cityplot3d Makes a 3d plot with bar graphs indicating the metrics at each
 %architecture and the position of the architecture minimizing the squared
 %error distance to the other points as given in dist matrix.
@@ -14,14 +14,18 @@ hold on
 nMet=metrics-repmat(min(metrics,[],1),size(metrics,1),1); 
 nMet=nMet./repmat(max(nMet,[],1),size(nMet,1),1);
 
+pltOpts=struct('skyscraperRegulation',[]);
+
 plotting=mdscale(dist,2,'Criterion','sammon'); %seems to fix when wild variations in distance
 % plotting=mdscale(dist,2); %Kruskal's Normalized Stress. "Classic"
 % plotting=cmdscale(dist); plotting=plotting(:,1:min(2,size(plotting,2)));
 colorEdgeByDist3d(dist,plotting,'auto');
-nodesWithBarGraph3d(plotting,nMet,range(plotting(:,2))/10)
+pltOpts.skyscraperRegulation=range(plotting(:,2))/10; %inspired by Ithaca's nonsense regulations we've elected by order of the mayor to name the data variable that limits the height of the bar plots/skyscrapers "skyscraperRegulation" such that housing is limited to 4 floor buildings.
+nodesWithBarGraph3d(plotting,nMet,pltOpts.skyscraperRegulation, varargin{:})
 campos([7.2964  -17.4457    8.8248]);
 % view([18,85]);
 
+%% standardize archLbls into a cell array of strings
 if(isnumeric(archs))
     archLbls=cell(size(archs,1),1);
     for(i=1:size(archs,1))
@@ -38,7 +42,7 @@ else
     end
 end
 
-%%create data cursor window
+%% create data cursor window
 % base_metLbls={'science','cost','programmatic risk','fairness'};
 % metLbls=mat2cell(base_metLbls(1:size(metrics,2)));
 % aug_metLbls=cell(numel(metLbls)*2,1);

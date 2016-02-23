@@ -25,7 +25,11 @@ function handle=plotGraphPlus(handle,pointLocs,edges,edgeColors, nodeColors ,edg
         if(m==1 || n==1)
             colorsMap=colormap(handle);
             refDists=linspace(min(nodeColors),max(nodeColors),size(colorsMap,1));
-            nodeColors=interp1(refDists,colorsMap,nodeColors);
+            if(min(nodeColors)==max(nodeColors))
+                nodeColors=repmat(colorsMap(ceil(size(colorsMap,1)/2),:),size(nodeColors,1),1);
+            else
+                nodeColors=interp1(refDists,colorsMap,nodeColors);
+            end
         end
     end
 
@@ -50,7 +54,7 @@ function handle=plotGraphPlus(handle,pointLocs,edges,edgeColors, nodeColors ,edg
 
     %% plotting edges
     if(~isempty(edges))
-        [m,n]=size(edges)
+        [m,n]=size(edges);
         if(m ~=2 && n~=2)
             error('edges do not connect 2 elements. neither dimension is size 2');
         elseif(n~=2 && m==2) % input as columns

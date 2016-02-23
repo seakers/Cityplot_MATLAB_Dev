@@ -23,7 +23,7 @@ for(i=1:size(plotting,1))
 		adjust=rectWidthX*(metI-1);
         barPos=[plotting(i,1)+adjust,plotting(i,2),0];
         barDim=[rectWidthX,rectWidthY,rectHeight(i,metI)];
-        drawBox3d(barPos,barDim,'FaceColor',colorcycle(mod(metI-1,length(colorcycle))+1));
+        drawBox3d(barPos,barDim,'FaceColor',colorcycle(mod(metI-1,length(colorcycle))+1),varargin{:});
 	end
 end
 return
