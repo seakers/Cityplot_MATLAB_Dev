@@ -35,7 +35,6 @@ compareIndxs=nchoosek(1:size(plotLocs,1),2);
 
 if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
     useAuto=true;
-%     targetConn=size(distances,1)*targetMult; % based on guesswork and some trial and error
     targetConn=floor(size(distances,1)*log(size(distances,1))); % expected number of edges for a single connected component. See pg 82 of Hopcroft Kannan Foundations of Data Science.
     tmp=triu(distances,1);
     if(max(abs(distances-floor(distances)))<1e-13) % if integer distances
