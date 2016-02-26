@@ -102,6 +102,7 @@ if(isempty(lineColors) || (ischar(lineColors) && strcmp(lineColors,'auto')));
     end
 else
 
+%% legend hack. by placing a set of points at somewhere insignificant can get legend to show up.
 for(i=1:size(lineColors,1))
     plot3(0,0,0,'Color',lineColors(i,:));
 end

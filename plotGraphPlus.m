@@ -3,118 +3,89 @@
 %the only truly required inputs are edgeEndpoints, the others can be left
 %as [] to either ignore, create a new instance or find an automatic coloring rule.
 function handle=plotGraphPlus(handle,pointLocs,edges,edgeColors, nodeColors ,edgeStrs,nodeStrs)
-    %% set up figure for plotting.
-    if(isempty(handle))
-        handle=figure();
+%% set up figure for plotting.
+if(isempty(handle))
+    handle=figure();
+end
+
+wasHeld=ishold(handle);
+oldGCF=gcf();
+hold on
+set(handle,'Visible','off');
+
+%% defaults and input checking
+nodeColors=regularizeColorMap(nodeColors, size(pointLocs,1),handle);
+
+if(~isempty(edges))
+    [m,n]=size(edges);
+    if(m ~=2 && n~=2)
+        error('edges do not connect 2 elements. neither dimension is size 2');
+    elseif(n~=2 && m==2) % input as columns
+        edges=edges';
     end
-
-    wasHeld=ishold(handle);
-    oldGCF=gcf();
-    hold on
-    set(handle,'Visible','off');
-
-    %% defaults
-    if(isempty(nodeStrs))
-        nodeStrs=cell(size(pointLocs,1),1);
-    end
-
-    if(isempty(nodeColors))
-        nodeColors=repmat('k',size(pointLocs,1),1);
-    else
-        [m,n]=size(nodeColors);
-        if(m==1 || n==1)
-            uChk=unique(nodeColors);
-            if(length(uChk)>=2)
-                colorsMap=colormap(handle);
-                refDists=linspace(min(nodeColors),max(nodeColors),size(colorsMap,1));
-                nodeColors=interp1(refDists,colorsMap,nodeColors);
-            else
-                nodeColors=repmat('b',size(nodeColors,1),1);
-            end
-
-        end
-    end
-
-    %% plotting nodes
-    for(indx=1:size(pointLocs,1))
-        plot(pointLocs(indx,1),pointLocs(indx,2),'s','MarkerFaceColor',nodeColors(indx,:));
+    if(isempty(edgeStrs))
+        edgeStrs=cell(size(edges,1),1);
     end
     
-    Xlim=get(gca(),'XLim'); Ylim=get(gca(),'YLim');
-    rngX=range(Xlim); rngY=range(Ylim);
-    offset=0.03;
+    edgeEndpoint1=pointLocs(edges(:,1),:);
+    edgeEndpoint2=pointLocs(edges(:,2),:);
+    dists=sqrt(sum((edgeEndpoint1-edgeEndpoint2).^2,2));
+    
+    edgeColors=regularizeColorMap(edgeColors,size(edgeEndpoint1,1),colormap(handle),'defaultColor','r', 'defaultValue',dists);
+    
+    for(indx=1:size(edgeEndpoint1,1)) %plot edges individually
+        pltX=[edgeEndpoint1(indx,1),edgeEndpoint2(indx,1)];
+        pltY=[edgeEndpoint1(indx,2),edgeEndpoint2(indx,2)];
+        
+        plot(pltX,pltY,'-','Color',edgeColors(indx,:));
+    end
+end
+
+for(indx=1:size(pointLocs,1)) %plot nodes individually
+    plot(pointLocs(indx,1),pointLocs(indx,2),'s','MarkerFaceColor',nodeColors(indx,:));
+end
+
+%% add text
+Xlim=get(gca(),'XLim'); Ylim=get(gca(),'YLim');
+rngX=range(Xlim); rngY=range(Ylim);
+offset=0.03;
+if(~isempty(nodeStrs))
+    nodeStrs=regularizeLbls(nodeStrs,size(pointLocs,1)); %TODO, enable and trim and check before plotting
     for(indx=1:size(pointLocs,1))
-        if(~isempty(nodeStrs{indx}))
+        toWrite=strtrim(nodeStrs{indx});
+        if(~isempty(toWrite))
             pltX=pointLocs(indx,1);
             pltY=pointLocs(indx,2);
             txtX=mean(pltX)+offset*rngX;
             txtY=mean(pltY)+offset*rngY;
 
-            text(txtX,txtY,nodeStrs{indx});
+            text(txtX,txtY,toWrite);
         end
     end
+end
     
-    %%TODO swap order of nodes and edges. Tricky because need to make sure
-    %%plot is the correct size to fit all nodes /before/ laying down
-    %%edges--and there may not be edges to the extreme points that set the
-    %%figure axis limits.
-
-    %% plotting edges
-    if(~isempty(edges))
-        [m,n]=size(edges);
-        if(m ~=2 && n~=2)
-            error('edges do not connect 2 elements. neither dimension is size 2');
-        elseif(n~=2 && m==2) % input as columns
-            edges=edges';
-        end
-    if(isempty(edgeStrs))
-        edgeStrs=cell(size(edges,1),1);
-    end
-            
-        edgeEndpoint1=pointLocs(edges(:,1),:);
-        edgeEndpoint2=pointLocs(edges(:,2),:);
-
-        if isempty(edgeColors)
-            dists=sqrt(sum((edgeEndpoint1-edgeEndpoint2).^2,2));
-            colorsMap=colormap(handle);
-            refDists=linspace(min(dists),max(dists),size(colorsMap,1));
-            edgeColors=interp1(refDists,colorsMap,dists);
-        else
-            [m,n]=size(edgeColors);
-            if((m==1 || n==1) && isnumeric(edgeColors))
-                uChk=unique(edgeColors);
-                if(length(uChk)>2)
-                    colorsMap=colormap(handle);
-                    refDists=linspace(min(edgeColors),max(edgeColors),size(colorsMap,1));
-                    edgeColors=interp1(refDists,colorsMap,edgeColors);
-                else
-                    edgeColors=repmat('r',size(edgeColors,1),1);
-                end
-            end
-        end
-
-        for(indx=1:size(edgeEndpoint1,1))
+if(~isempty(edges) && ~isempty(edgeStrs))
+    edgeStrs=regularizeLbls(edgeStrs,size(edges,1)); % TODO, enable and trim and check before plotting
+    for(indx=1:size(edges,1))
+        toWrite=strtrim(edgeStrs{indx});
+        if(~isempty(toWrite))
             pltX=[edgeEndpoint1(indx,1),edgeEndpoint2(indx,1)];
             pltY=[edgeEndpoint1(indx,2),edgeEndpoint2(indx,2)];
+            txtX=mean(pltX)+offset*rngX;
+            txtY=mean(pltY)+offset*rngY;
 
-            plot(pltX,pltY,'-','Color',edgeColors(indx,:));
-
-            if(~isempty(edgeStrs{indx}))
-                txtX=mean(pltX)+offset*rngX;
-                txtY=mean(pltY)+offset*rngY;
-
-                text(txtX,txtY,edgeStrs{indx});
-            end
+            text(txtX,txtY,edgeStrs{indx});
         end
     end
+end
     
-    %% reset hold state and make small adjustments
-    if(wasHeld)
-        hold(gca(),'on');
-    else
-        hold(gca(),'off');
-    end
-    figure(oldGCF);
+%% reset hold state and make small adjustments
+if(wasHeld)
+    hold(gca(),'on');
+else
+    hold(gca(),'off');
+end
+figure(oldGCF);
 
-    colorbar('WestOutside');
-    set(handle,'Visible','on');
+colorbar('WestOutside');
+set(handle,'Visible','on');
