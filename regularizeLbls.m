@@ -4,7 +4,9 @@ if(isempty(inLbls))
 elseif(ischar(inLbls))
     lbls=mat2cell(inLbls,ones(size(inLbls,1),1),size(inLbls,2));
 elseif(isnumeric(inLbls))
-    lbls=regularizeLbls(num2str(inLbls)); % now is char.
+    lbls=regularizeLbls(num2str(inLbls),targetSize); % now is char.
+elseif(islogical(inLbls))
+    lbls=regularizeLbls(num2str(real(inLbls)),targetSize);
 elseif(iscell(inLbls))
     lbls=inLbls;
     for indx=1:numel(inLbls)
