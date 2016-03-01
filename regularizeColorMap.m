@@ -36,10 +36,10 @@ else
         else
             toColor=repmat(p.Results.defaultColor,max(m,n),1);
         end
-    elseif(m==3 && n==pNumToColor) % assume it's a colorcode
-        toColor=pInput';
-    elseif(n==3 && m==pNumToColor)
-        toColor=pInput;
+    elseif(n==3 && m==pNumToColor) % assume it's a colorcode
+        toColor=pInput; % note if 3x3 will NOT transpose
+    elseif(m==3 && n==pNumToColor)
+        toColor=pInput'; % standardize direction.
     else
         if(any(strcmp(p.UsingDefaults,'defaultValue')))
             error('inputs are insuitable size to regularize color mapping and not given a default value')
@@ -48,7 +48,7 @@ else
             filterOut=[varin,varin+1];
             mask=true(numel(varrgin),1);
             mask(filterOut)=false; % this will prevent inifinite looping if the default value fails to comply.
-            regularizeColorMap(pColorsMap,p.Results.defaultValue,numToColor,varargin{mask});
+            regularizeColorMap(p.Results.defaultValue,numToColor,pColorMap,varargin{mask});
         end
     end
 end

@@ -6,6 +6,8 @@ function [plotting,nMet,pltOpts,dataCursorHandle]=cityplot3d(h,dist, metrics, va
 %   between architecture i from architecture j.
 %   metrics--the scores to bar chart.
 
+% TODO: add options to obsolete interpreter.
+
 %% input parsing and validation.
 p=inputParser;
 addRequired(p,'dist',@isnumeric)
