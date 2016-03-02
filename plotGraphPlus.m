@@ -33,7 +33,8 @@ if(~isempty(edges))
     
     edgeColors=regularizeColorMap(edgeColors,size(edgeEndpoint1,1),colormap(handle),'defaultColor','r', 'defaultValue',dists);
     
-    for(indx=1:size(edgeEndpoint1,1)) %plot edges individually
+    %% plot edges individually
+    for(indx=1:size(edgeEndpoint1,1))
         pltX=[edgeEndpoint1(indx,1),edgeEndpoint2(indx,1)];
         pltY=[edgeEndpoint1(indx,2),edgeEndpoint2(indx,2)];
         
@@ -41,7 +42,8 @@ if(~isempty(edges))
     end
 end
 
-for(indx=1:size(pointLocs,1)) %plot nodes individually
+%% plot nodes individually
+for(indx=1:size(pointLocs,1)) 
     plot(pointLocs(indx,1),pointLocs(indx,2),'s','MarkerFaceColor',nodeColors(indx,:));
 end
 

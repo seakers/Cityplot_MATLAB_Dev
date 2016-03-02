@@ -57,7 +57,7 @@ end
 
 parse(p,effArgList{:});
 
-%% normailization
+%% normalization
 nMet=p.Results.metrics-repmat(min(p.Results.metrics,[],1),size(p.Results.metrics,1),1);
 nMet=nMet./repmat(max(nMet,[],1),size(nMet,1),1);
 
@@ -83,7 +83,7 @@ else
 end
 
 %% Build Roads
-colorEdgeByDist3d(p.Results.dist,plotting,'auto');
+plotRoads3d(figHandle, p.Results.dist, plotting, 'legendCap', 16);
 
 %% Build Skyscrapers
 if(any(strcmp(p.UsingDefaults,'BuildingHeight')))
