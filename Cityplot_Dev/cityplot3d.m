@@ -96,6 +96,9 @@ else
     defFig=true;
 end
 axHandle=figurePlotAxes(h);
+if(numel(axHandle)>=2)
+    error('ambiguous axis handle to plot onto');
+end
 parse(p,effArgList{:});
 
 %% normalization
