@@ -79,19 +79,22 @@ if(p.Results.legendCap>0) % will group, bin and use roads
             legendStr=[num2str(binBndry(1:end-1)','%4.2g'),repmat('-',length(binBndry)-1,1),num2str(binBndry(2:end)','%4.2g')];
         end
     else % no need to bin
-        legendStr=num2str(uDist');
+        if(size(uDist,1)==1)
+            uDist=uDist';
+        end
+        legendStr=num2str(uDist);
     end
     
-    if(size(p.Results.lineColors,1)>p.Results.legendCap)
-        lineColorsToUse=interp1([1:size(p.Results.lineColors,1)]/size(p.Results.lineColors,1), p.Results.lineColors,[1:(p.Results.legendCap)]/p.Results.legendCap, 'pchip'); % downscale linecolors
+    colorsUsed=min(p.Results.legendCap, size(uDist,1));
+    if(size(p.Results.lineColors,1)>colorsUsed)
+        lineColorsToUse=interp1(linspace(0,1,size(p.Results.lineColors,1)), p.Results.lineColors,linspace(0,1,colorsUsed), 'pchip'); % downscale linecolors
     else
         lineColorsToUse=p.Results.lineColors;
     end
     
     interp='previous';
-    hackLegend(handle, p.Results.plotLocs, filterDist,lineColorsToUse); % overrrides first several lines so can present legend correctly later.
+    hackLegend(handle, p.Results.plotLocs, uDist, lineColorsToUse); % overrrides first several lines so can present legend correctly later.
 else % do as continuous mapping with linear interpolation.
-    plotDist=filterDist;
     lineColorsToUse=p.Results.lineColors;
     interp='linear';
 end

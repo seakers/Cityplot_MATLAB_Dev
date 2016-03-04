@@ -35,7 +35,7 @@ addRequired(p,'distances', @(in) isnumeric(in) && size(in,2)==3);
 addOptional(p,'lineColors',get(0,'DefaultFigureColorMap'));
 addParameter(p,'interpMethod','linear', @(x) any(validatestring(x, {'linear','nearest','next','previous','pchip','cubic','v5cubic','spline'})));
 
-if(~exist('varargin'))
+if(~exist('varargin','var'))
     varargin=cell(0);
 end
 

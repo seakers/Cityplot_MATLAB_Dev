@@ -1,4 +1,4 @@
-function [plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, criteria, varargin)
+function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, criteria, varargin)
 %cityplot3d create cityplot of input distances with input objectives.
 %  Average distances are preserved as much as possible while reducing to a 2d
 %  ground plane with euclidean distance and the criteria are plotting as a
@@ -45,6 +45,13 @@ function [plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, criter
 %      'BuildingProp', cellArrayOfOptions : specifies patch properties to
 %         use when rendering buildings. See doc patch properties for
 %         options to put into cellArrayOfOptions
+%      'LegendCap', number : maximum number of buckets to use in creating
+%         the legend. Inputting <=0 will use a colorbar instead.
+%      'RoadLimit', number : limit on the number of roads to draw. Will
+%         come as close as possible to the input number without going over.
+%         Difference will be due to duplicate distance values. Default is
+%         based on the expected number of edges needed to create a single
+%         connected component in a random graph.
 %      'Spew', spewOptions : adds additional data to points on the
 %         cityplot. Tends to make things extremely crowded (the plot looks
 %         like "spew"). Spew Options should be given as a cell array or strings 
@@ -65,7 +72,8 @@ addRequired(p,'criteria',@isnumeric)
 addParameter(p,'DesignLabels',arrayfun(@(num) ['design #',num2str(num)], 1:size(dist,1),'UniformOutput',false))
 addParameter(p,'CriteriaLabel',arrayfun(@(num) ['criteria #',num2str(num),': '], 1:size(criteria,2),'UniformOutput',false));
 addParameter(p,'Spew',[]);
-% addRequired(p,'DesignLabels')
+addParameter(p,'LegendCap', 16, @isnumeric);
+addParameter(p,'RoadLimit', [], @isnumeric);
 
 % mdscale and cmdscale poke through
 addParameter(p,'UseClassic',true);
@@ -147,7 +155,11 @@ else
 end
 
 %% Build Roads
-plotRoads3d(axHandle, p.Results.dist, plotting, 'legendCap', 16);
+if(any(strcmp(p.UsingDefaults, 'RoadLimit')))
+    plotRoads3d(axHandle, p.Results.dist, plotting, 'legendCap', 16);
+else
+    plotRoads3d(axHandle, p.Results.dist, plotting, 'legendCap', p.Results.LegendCap, 'targetConn', p.Results.RoadLimit);
+end
 
 %% Build Skyscrapers
 if(any(strcmp(p.UsingDefaults,'BuildingHeight')))
@@ -181,7 +193,7 @@ set(dataCursorHandle,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plott
 if(~any(strcmp(p.UsingDefaults, 'Spew')))
     spewOptions=ismember({'DesignLabels','CriteriaValues'},p.Results.Spew); % scalable way to check spew options
     spewCell=cell(size(plotting,1),1);
-    
+
     if(spewOptions(1))
         spewCell=cellfun(@(old, new) [old,new], spewCell, archLbls,'UniformOutput',false);
     end
@@ -196,7 +208,7 @@ if(~any(strcmp(p.UsingDefaults, 'Spew')))
             spewCell{i}=[spewCell{i}, CriteriaLabel{j+1}, num2str(p.Results.criteria(i,j+1))]; % omits ending seperator.
         end
     end
-    
+
     %node spew.
     xrange=range(plotting(:,1));
     yrange=range(plotting(:,2));
