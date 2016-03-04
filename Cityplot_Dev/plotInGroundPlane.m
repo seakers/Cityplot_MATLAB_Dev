@@ -1,11 +1,38 @@
-%%plots edges in the ground plane with
-function [handle]=plotInGroundPlane(handle, plotLocs, distances, lineColors, varargin)
+function handle=plotInGroundPlane(handle, plotLocs, distances, lineColors, varargin)
+% plotInGroundPlane plots the roads for a cityplot with roads colored to
+% correspond to the distances
+%
+% plotInGroundPlane(distances, plotLocs) plots the roads with colors determined
+%    to be proportional to distances and plotLocs determining endpoints.
+%    distances should be an Ex3 matrix where the 1st two columns are
+%    indicies of endpoints corresponding positions which
+%    are numbered in the 1st index of plotLocs. The 3rd column should be the
+%    distance between inputs. All edges given as such in distances are plotted.
+%    plotLocs is Nx2 matrix of the locations of nodes connected by edges in
+%    distances. Rows are coordinate locations.
+% plotInGroundPlane(distances, plotLocs, lineColors) uses the colormap
+%    lineColors as to plot the distances. Default is the
+%    DefaultFigureColorMap.
+% plotInGroundPlane(distances, plotLocs, lineColors, 'interpMethod', str)
+%    uses the input interpolation method for interoplating between
+%    lineColors values when finding distanecs. options are {'linear'
+%    (default), 'nearest', 'next', 'previous', 'pchip', 'cubic', 'v5cubic',
+%    'spline'}. See help interp1 for more information on each option.
+%
+% plotInGroundPlane(h, ___) plots on the input figure handle.
+% 
+% h=plotInGroundPlane(___) returns the handle used for plotting.
+%
+% plotRoads3d(__, option1Str, option1val, ...) gives options as follows:
+%    
+%
+
 %% input parsing and checking
 p=inputParser();
 
 addRequired(p,'plotLocs', @(in) isnumeric(in));
 addRequired(p,'distances', @(in) isnumeric(in) && size(in,2)==3);
-addOptional(p,'lineColors',hsv2rgb([sin(4/3*pi*linspace(0,1,16))',ones(16,2)]), @(in) isnumeric(in) && size(in,2)==3);
+addOptional(p,'lineColors',get(0,'DefaultFigureColorMap'));
 addParameter(p,'interpMethod','linear', @(x) any(validatestring(x, {'linear','nearest','next','previous','pchip','cubic','v5cubic','spline'})));
 
 if(~exist('varargin'))

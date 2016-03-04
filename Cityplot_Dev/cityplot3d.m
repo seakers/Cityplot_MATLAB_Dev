@@ -1,29 +1,66 @@
-function [plotting,nMet,pltOpts,dataCursorHandle]=cityplot3d(h,dist, metrics, varargin)
-%cityplot3d Makes a 3d plot with bar graphs indicating the metrics at each
-%architecture and the position of the architecture minimizing the squared
-%error distance to the other points as given in dist matrix.
-%   dist--distance matrix. An n x n symmetric positive matrix of dstances
-%   between architecture i from architecture j.
-%   metrics--the scores to bar chart.
+function [plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, criteria, varargin)
+%cityplot3d create cityplot of input distances with input objectives.
+%  Average distances are preserved as much as possible while reducing to a 2d
+%  ground plane with euclidean distance and the criteria are plotting as a
+%  bar graphs ("skyscrapers") at each complete design ("cities"). See Nathan
+%  Knerr, Daniel Selva, "Cityplot: Visualization of High-Dimensional Design
+%  Spaces with Multiple Criteria" Journal of Mechanical Design (in review)
+%  for more information.
+%
+%   cityplot3d(dist, criteria) :: makes a cityplot with default settings. dist
+%      is symetric strictly positive NxN matrix of distances between designs
+%      in the original space (equivalently, the dissimilarity matrix between 
+%      objects to plot); N is the number of designs. criteria is a NxP matrix where each row is a
+%      the criteria upon which one migt judge designs; P is the number of
+%      criteria.
+%
+%   (optional) outputs:
+%       plotting :: 2-d locations for cities in the 2-d reduced space
+%       nCriteria :: NxP matrix of normalized criteria used for plotting skyscraper heights.
+%       pltOpts :: assorted default values used in plot creation. Subject
+%                  to change. Current values are: pltOpts.buildingHeight,
+%                  pltOpts.campos. which are value used for BuildingHeight
+%                  option and camera position respectively. 
+%       dataCursorHandle :: a handle to the data cursor object used when
+%                  clicking on a design in the cityplot.
+%
+%   cityplot(h, __) plots onto the figure handle h (will use hold on).
+%
+%   cityplot(dist, criteria, option1command, option1value, ...) :: uses
+%   options from the following list:
+%      'UseClassic', {true (default) | false} : uses classical multidimensional scaling
+%      'DesignLabels', cellArrayOfStrings with N cells : labels used when
+%         called with 'spew' or when clicking designs with the data cursor.
+%      'CriteriaLabel' : labels used for labelling criteria when clicking
+%         designs with the data cursor.
+%      'MdscaleOptArgs', cellArrayOfOptions : will use mdscale unless
+%         UseClassic is manually set to true. Will feed mdscale all options
+%         specified by cellArrayOfOptions as if were inputting into the
+%         argument list of mdscale. See help mdscale for options to put into
+%         cellArrayOfOptions.
+%      'BuildingHeight', realNumber : specifies the maximum height of
+%         bars (skyscrapers) in the graph. defaults to a convienent
+%         percentage of the ground plane occupied by cities.
+%      'BuildingProp', cellArrayOfOptions : specifies patch properties to
+%         use when rendering buildings. See doc patch properties for
+%         options to put into cellArrayOfOptions
+%
+%   for examples see included sample problems folder.
 
-% TODO: add options to obsolete interpreter.
+%%TODO: add option to 'spew' architecture labels and obsolete the
+%%cityplot3dInterpreter function.
 
 %% input parsing and validation.
 p=inputParser;
 addRequired(p,'dist',@isnumeric)
-addRequired(p,'metrics',@isnumeric)
-addOptional(p,'archs',arrayfun(@(num) ['design #',num2str(num)], 1:size(dist,1),'UniformOutput',false))
-addOptional(p,'metLbls',arrayfun(@(num) ['objective #',num2str(num),': '], 1:size(metrics,2),'UniformOutput',false));
-% addRequired(p,'archs')
+addRequired(p,'criteria',@isnumeric)
+addParameter(p,'DesignLabels',arrayfun(@(num) ['design #',num2str(num)], 1:size(dist,1),'UniformOutput',false))
+addParameter(p,'CriteriaLabel',arrayfun(@(num) ['criteria #',num2str(num),': '], 1:size(criteria,2),'UniformOutput',false));
+% addRequired(p,'DesignLabels')
 
 % mdscale and cmdscale poke through
 addParameter(p,'UseClassic',true);
 addParameter(p,'MdscaleOptArgs',[]);
-% addParameter(p,'Criterion','stress'); % manually code all possible parameters. decided against this for being hard to maintain in future edtitions of MATLAB
-% addParameter(p,'Weights', []);
-% addParameter(p,'Start','cmdscale');
-% addParameter(p,'Replicates',1);
-% addParameter(p,'MdscaleOpt',[]);
 
 % skyscraper defaults and patch properties poke through
 addParameter(p,'BuildingHeight',[]);
@@ -31,7 +68,7 @@ addParameter(p,'BuildingProp',[]);
 
 % handle h manually.
 if(all(size(h)==[1,1]) && all(isgraphics(h(:)))) % can't handle multiple figure handles (handle is just a selection) and distance are really uninteresting if 1x1
-    % must be passed in archs but not handle.
+    % must be passed in DesignLabels but not handle.
     figHandle=h;
     
     switch nargin
@@ -40,7 +77,7 @@ if(all(size(h)==[1,1]) && all(isgraphics(h(:)))) % can't handle multiple figure 
         case 2
             error('insufficent number of arguments to use cityplot3d with a figure handle call');
         otherwise
-            effArgList={dist,metrics,varargin{:}};
+            effArgList={dist,criteria,varargin{:}};
     end
 else
     figHandle=figure;
@@ -51,15 +88,15 @@ else
         case 2
             effArgList={h,dist};
         otherwise
-            effArgList={h,dist,metrics,varargin{:}};
+            effArgList={h,dist,criteria,varargin{:}};
     end
 end
 
 parse(p,effArgList{:});
 
 %% normalization
-nMet=p.Results.metrics-repmat(min(p.Results.metrics,[],1),size(p.Results.metrics,1),1);
-nMet=nMet./repmat(max(nMet,[],1),size(nMet,1),1);
+nCriteria=p.Results.criteria-repmat(min(p.Results.criteria,[],1),size(p.Results.criteria,1),1);
+nCriteria=nCriteria./repmat(max(nCriteria,[],1),size(nCriteria,1),1);
 
 %% get the city locations with mdscale
 figure(figHandle);
@@ -95,9 +132,9 @@ end
 pltOpts.BuildingHeight=BuildingHeight;
 
 if(any(strcmp(p.UsingDefaults,'BuildingProp')))
-    nodesWithBarGraph3d(plotting,nMet,BuildingHeight);
+    nodesWithBarGraph3d(plotting,nCriteria,BuildingHeight);
 else
-    nodesWithBarGraph3d(plotting,nMet,BuildingHeight,'BuildingProp',p.Results.BuildingProp);
+    nodesWithBarGraph3d(plotting,nCriteria,BuildingHeight,'BuildingProp',p.Results.BuildingProp);
 end
 
 %% set default view
@@ -106,12 +143,12 @@ campos(pltOpts.campos);
 % view([18,85]);
 
 %% standardize labels and set up data cursor
-archLbls=regularizeLbls(p.Results.archs,size(plotting,1));
-metLbls=regularizeLbls(p.Results.metLbls,size(metrics,2));
+archLbls=regularizeLbls(p.Results.DesignLabels,size(plotting,1));
+CriteriaLabel=regularizeLbls(p.Results.CriteriaLabel,size(criteria,2));
 
 dataCursorHandle = datacursormode;
 set(dataCursorHandle,'DisplayStyle','window');
-set(dataCursorHandle,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plotting,1),1)],archLbls,metLbls,p.Results.metrics});
+set(dataCursorHandle,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plotting,1),1)],archLbls,CriteriaLabel,p.Results.criteria});
 
 hold off
 end

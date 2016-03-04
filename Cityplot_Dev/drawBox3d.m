@@ -2,6 +2,18 @@
 % representing position and length respetively of the box.
 % for varargin, see patch properties except position.
 function drawBox3d(posVect,dimVect,varargin)
+% drawBox3d draws rectangular prisms growing from the ground plane in the 
+%   current figure.
+% 
+% drawBox3d(posVect, dimVect) plots prisms at locations [posVect(i,:), 0]
+%    for each i. each prism is given with dimensions dimVect and the prism
+%    grows in the positive direction from [posVect(i,:), 0] in each
+%    dimension.
+% 
+% drawBox3d(posVect, dimVect, opt1str, opt1val,...) passes the arguments to
+%    for altering the patch properties of the drawn prisms. see fill3 for
+%    all options and doc patch properties for the common ones.
+%
     if(numel(posVect)~=3 || numel(dimVect)~=3)
         if(size(posVect,2)~=size(dimVect,2))
             error('dimensions and positions must match up for drawing multiple rectangles');
