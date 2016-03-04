@@ -11,7 +11,7 @@ function [handle]=plotRoads3d(handle, distances, plotLocs, varargin)
 %    Rows are coordinate locations.
 %    Observe the number of distances plotted is capped (see options).
 %
-% plotRoads3d(h, ___) plots on the input figure handle.
+% plotRoads3d(h, ___) plots on the input figure or axes handle.
 % 
 % h=plotRoads3d(___) returns the handle used for plotting.
 %
@@ -48,14 +48,18 @@ switch nargin
         error('too few inputs to plotInGroundPlane');
     case {2, 4, 6, 8}
         parse(p,handle,distances);
-        handle=figure();
+        handle=gcf();
     case {3, 5, 7, 9}
         parse(p,distances, plotLocs, varargin{:});
     otherwise
         error('too many inputs to plotInGroundPlane');
 end
 if(~(all(size(handle)==[1,1]) && isgraphics(handle)))
-    error('figure handle is not a figure handle')
+    if(isempty(handle))
+        error('empty figure handle to plotRoads 3d');
+    else
+        error('figure handle is not a valid handle')
+    end
 end
 
 %% filter distances to plot
@@ -63,17 +67,19 @@ filterDist=distToTargetConn(distances, p.Results.targetConn);
 
 %% find if want to use a color map or bin into groups and give as legend
 if(p.Results.legendCap>0) % will group, bin and use roads
-    if(size(filterDist,1)>p.Results.legendCap)
+    uDist=unique(filterDist(:,3));
+    
+    if(size(uDist,1)>p.Results.legendCap)
         upper=max(filterDist(:,3));
         binBndry=linspace(min(filterDist(:,3)), upper+3*eps(upper), p.Results.legendCap);
+        
         if(isequal(fix(filterDist),filterDist)) % for integer distances round to integer values for legend
             legendStr=[num2str(floor(binBndry(1:end-1))','%i'),repmat('-',length(binBndry)-1,1),num2str(floor(binBndry(2:end))','%i')];
         else
             legendStr=[num2str(binBndry(1:end-1)','%4.2g'),repmat('-',length(binBndry)-1,1),num2str(binBndry(2:end)','%4.2g')];
         end
-    else % no need to cap
-        binBndry=filterDist;
-        legendStr=num2str(binBndry');
+    else % no need to bin
+        legendStr=num2str(uDist');
     end
     
     if(size(p.Results.lineColors,1)>p.Results.legendCap)

@@ -9,7 +9,7 @@ function handle=nodesWithBarGraph3d(handle, plotting, metrics, heightLim,varargi
 %   with length P corresponding to the limits in the height of each
 %   criteria.
 %
-% nodesWithBarGraph3d(h, ___) plots on the input figure handle.
+% nodesWithBarGraph3d(h, ___) plots on the input figure or axes handle.
 % 
 % h=nodesWithBarGraph3d(___) returns the handle used for plotting.
 % 
@@ -36,12 +36,12 @@ switch nargin
         error('too few input arguments to nodesWithBarGraph3d')
     case 3
         parse(p, handle, plotting, metrics);
-        handle=figure();
+        handle=gcf();
     case {4,6,8}
         parse(p, plotting, metrics, heightLim, varargin{:});
     case {5,7}
         parse(p, handle, plotting, metrics, heightLim, varargin{:});
-        handle=figure();
+        handle=gcf();
     otherwise
         error('too many input arguments to nodes WithBarGraph3d')
 end
@@ -77,9 +77,16 @@ n_met=metrics./repmat(max(metrics,[],1),size(metrics,1),1); % shrink all metrics
 rectHeight=n_met.*repmat(heightLim,size(metrics,1),1); % scale all buildings so tallest is at height limit for each objective.
 
 %% plot nodes and bar graphs.
-figure(handle);
+ax_hndl=figurePlotAxes(handle);
 for(i=1:size(plotting,1))
-	plot3(p.Results.handle, plotting(i,1),plotting(i,2),0,'MarkerFaceColor',zeros(1,3),'Marker','o'); %city marker
+    switch numel(ax_hndl)
+        case 0
+            plot3(plotting(i,1),plotting(i,2),0,'MarkerFaceColor',zeros(1,3),'Marker','o'); %city marker
+        case 1
+            plot3(ax_hndl, plotting(i,1),plotting(i,2),0,'MarkerFaceColor',zeros(1,3),'Marker','o'); %city marker
+        otherwise
+            error('multiple axes to plot detected. Not supported');
+    end
 	
 	for(metI=1:size(metrics,2)) % skyscrapers
 		adjust=rectWidthX*(metI-1);

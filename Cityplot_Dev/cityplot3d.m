@@ -24,7 +24,7 @@ function [plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, criter
 %       dataCursorHandle :: a handle to the data cursor object used when
 %                  clicking on a design in the cityplot.
 %
-%   cityplot(h, __) plots onto the figure handle h (will use hold on).
+%   cityplot(h, __) plots onto the axes or figure handle h
 %
 %   cityplot(dist, criteria, option1command, option1value, ...) :: uses
 %   options from the following list:
@@ -67,10 +67,12 @@ addParameter(p,'BuildingHeight',[]);
 addParameter(p,'BuildingProp',[]);
 
 % handle h manually.
+if(isempty(h))
+    error('1st argument to cityplot3d is empty')
+end
+
 if(all(size(h)==[1,1]) && all(isgraphics(h(:)))) % can't handle multiple figure handles (handle is just a selection) and distance are really uninteresting if 1x1
     % must be passed in DesignLabels but not handle.
-    figHandle=h;
-    
     switch nargin
         case {0,1}
             error('insufficent number of arguments to cityplot3d');
@@ -79,9 +81,8 @@ if(all(size(h)==[1,1]) && all(isgraphics(h(:)))) % can't handle multiple figure 
         otherwise
             effArgList={dist,criteria,varargin{:}};
     end
+    defFig=false;
 else
-    figHandle=figure;
-    
     switch nargin
         case {0,1}
             error('insufficent number of arguments to cityplot3d');
@@ -90,8 +91,11 @@ else
         otherwise
             effArgList={h,dist,criteria,varargin{:}};
     end
+    
+    h=gcf();
+    defFig=true;
 end
-
+axHandle=figurePlotAxes(h);
 parse(p,effArgList{:});
 
 %% normalization
@@ -99,8 +103,19 @@ nCriteria=p.Results.criteria-repmat(min(p.Results.criteria,[],1),size(p.Results.
 nCriteria=nCriteria./repmat(max(nCriteria,[],1),size(nCriteria,1),1);
 
 %% get the city locations with mdscale
-figure(figHandle);
-hold on
+set(axHandle,'Visible','off'); %don't render to save time.
+if(~isempty(axHandle))
+    holdState=ishold(axHandle);
+    hold(axHandle,'on');
+else % assume new figure or otherwise lacking axis. Set for figure and create axes.
+    holdState='off';
+    if(~defFig)
+        figure(h)
+    end
+    axHandle=axes();
+    hold on
+end
+
 if(any(strcmp(p.UsingDefaults,'UseClassic')))
     if(any(strcmp(p.UsingDefaults,'MdscaleOptArgs'))) %default to classic.
         plotting=cmdscale(p.Results.dist,2);
@@ -120,7 +135,7 @@ else
 end
 
 %% Build Roads
-plotRoads3d(figHandle, p.Results.dist, plotting, 'legendCap', 16);
+plotRoads3d(axHandle, p.Results.dist, plotting, 'legendCap', 16);
 
 %% Build Skyscrapers
 if(any(strcmp(p.UsingDefaults,'BuildingHeight')))
@@ -132,9 +147,9 @@ end
 pltOpts.BuildingHeight=BuildingHeight;
 
 if(any(strcmp(p.UsingDefaults,'BuildingProp')))
-    nodesWithBarGraph3d(plotting,nCriteria,BuildingHeight);
+    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight);
 else
-    nodesWithBarGraph3d(plotting,nCriteria,BuildingHeight,'BuildingProp',p.Results.BuildingProp);
+    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight,'BuildingProp',p.Results.BuildingProp);
 end
 
 %% set default view
@@ -150,5 +165,10 @@ dataCursorHandle = datacursormode;
 set(dataCursorHandle,'DisplayStyle','window');
 set(dataCursorHandle,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plotting,1),1)],archLbls,CriteriaLabel,p.Results.criteria});
 
-hold off
+set(axHandle,'Visible','on');
+if(holdState)
+    hold(axHandle,'on')
+else
+    hold(axHandle,'off')
+end
 end

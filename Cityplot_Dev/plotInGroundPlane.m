@@ -19,7 +19,7 @@ function handle=plotInGroundPlane(handle, plotLocs, distances, lineColors, varar
 %    (default), 'nearest', 'next', 'previous', 'pchip', 'cubic', 'v5cubic',
 %    'spline'}. See help interp1 for more information on each option.
 %
-% plotInGroundPlane(h, ___) plots on the input figure handle.
+% plotInGroundPlane(h, ___) plots on the input figure or axes handle.
 % 
 % h=plotInGroundPlane(___) returns the handle used for plotting.
 %
@@ -44,13 +44,13 @@ switch nargin
         error('too few inputs to plotInGroundPlane');
     case 2
         parse(p,handle,plotLocs);
-        handle=figure();
+        handle=figurePlotAxes(gcf());
     case {3,5} % one optional.
         if(all(size(handle)==[1,1]) && isgraphics(handle))
             parse(p,plotLocs, distances, varargin{:});
         else
             parse(p,handle,plotLocs, distances, varargin{:})
-            handle=figure();
+            handle=figurePlotAxes(gcf());
         end
     case 4
         if(all(size(handle)==[1,1]) && isgraphics(handle))
@@ -81,6 +81,6 @@ for(i=1:size(dist,1))
     pt1=pointLocs(indx1,:);
     pt2=pointLocs(indx2,:);
     
-    plot3([pt1(1); pt2(1)], [pt1(2); pt2(2)], zeros(2,1), 'Color', colorToUse(i,:));
+    plot3(handle,[pt1(1); pt2(1)], [pt1(2); pt2(2)], zeros(2,1), 'Color', colorToUse(i,:));
 end
 return
