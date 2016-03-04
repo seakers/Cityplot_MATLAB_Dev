@@ -31,8 +31,9 @@ function [plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, criter
 %      'UseClassic', {true (default) | false} : uses classical multidimensional scaling
 %      'DesignLabels', cellArrayOfStrings with N cells : labels used when
 %         called with 'spew' or when clicking designs with the data cursor.
+%         Default just uses dist/criteria index.
 %      'CriteriaLabel' : labels used for labelling criteria when clicking
-%         designs with the data cursor.
+%         designs with the data cursor. Default just numbers criteria.
 %      'MdscaleOptArgs', cellArrayOfOptions : will use mdscale unless
 %         UseClassic is manually set to true. Will feed mdscale all options
 %         specified by cellArrayOfOptions as if were inputting into the
@@ -44,11 +45,18 @@ function [plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, criter
 %      'BuildingProp', cellArrayOfOptions : specifies patch properties to
 %         use when rendering buildings. See doc patch properties for
 %         options to put into cellArrayOfOptions
+%      'Spew', spewOptions : adds additional data to points on the
+%         cityplot. Tends to make things extremely crowded (the plot looks
+%         like "spew"). Spew Options should be given as a cell array or strings 
+%         or a single string. If multiple strings are input via cell array
+%         will concatenate all spew options and spew all input options.
+%         Options are:
+%            'DesignLabels' : labels each city/design on the cityplot
+%                 ground plane.
+%            'CriteriaValues' : labels each city/design with the criteria
+%                 labels and values.
 %
 %   for examples see included sample problems folder.
-
-%%TODO: add option to 'spew' architecture labels and obsolete the
-%%cityplot3dInterpreter function.
 
 %% input parsing and validation.
 p=inputParser;
@@ -56,6 +64,7 @@ addRequired(p,'dist',@isnumeric)
 addRequired(p,'criteria',@isnumeric)
 addParameter(p,'DesignLabels',arrayfun(@(num) ['design #',num2str(num)], 1:size(dist,1),'UniformOutput',false))
 addParameter(p,'CriteriaLabel',arrayfun(@(num) ['criteria #',num2str(num),': '], 1:size(criteria,2),'UniformOutput',false));
+addParameter(p,'Spew',[]);
 % addRequired(p,'DesignLabels')
 
 % mdscale and cmdscale poke through
@@ -162,16 +171,49 @@ campos(pltOpts.campos);
 
 %% standardize labels and set up data cursor
 archLbls=regularizeLbls(p.Results.DesignLabels,size(plotting,1));
-CriteriaLabel=regularizeLbls(p.Results.CriteriaLabel,size(criteria,2));
+CriteriaLabel=regularizeLbls(p.Results.CriteriaLabel,size(p.Results.criteria,2));
 
 dataCursorHandle = datacursormode;
 set(dataCursorHandle,'DisplayStyle','window');
 set(dataCursorHandle,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plotting,1),1)],archLbls,CriteriaLabel,p.Results.criteria});
 
+%% spew. ew.
+if(~any(strcmp(p.UsingDefaults, 'Spew')))
+    spewOptions=ismember({'DesignLabels','CriteriaValues'},p.Results.Spew); % scalable way to check spew options
+    spewCell=cell(size(plotting,1),1);
+    
+    if(spewOptions(1))
+        spewCell=cellfun(@(old, new) [old,new], spewCell, archLbls,'UniformOutput',false);
+    end
+    if(spewOptions(2))
+        if(any(spewOptions(1:1))) % if have already had a spew option, add a seperator character.
+            spewCell=cellfun(@(old) [old, ' | '], spewCell,'UniformOutput',false);
+        end
+        for i=1:size(spewCell,1) % add all criteria and corresponding labels as a line
+            for j=1:(size(p.Results.criteria,2)-1)
+                spewCell{i}=[spewCell{i}, CriteriaLabel{j}, num2str(p.Results.criteria(i,j)), ','];
+            end
+            spewCell{i}=[spewCell{i}, CriteriaLabel{j+1}, num2str(p.Results.criteria(i,j+1))]; % omits ending seperator.
+        end
+    end
+    
+    %node spew.
+    xrange=range(plotting(:,1));
+    yrange=range(plotting(:,2));
+
+    rectWidthX=xrange/60;
+    rectWidthY=yrange/60;
+    for(i=1:size(plotting,1))
+        text(plotting(i,1)+rectWidthX,plotting(i,2)-rectWidthY*1.5,0,spewCell{i});
+    end
+end
+
+%% reset plot properties.
 set(axHandle,'Visible','on');
 if(holdState)
     hold(axHandle,'on')
 else
     hold(axHandle,'off')
 end
-end
+
+return
