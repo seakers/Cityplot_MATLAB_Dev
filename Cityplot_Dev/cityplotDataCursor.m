@@ -16,8 +16,8 @@ pos=get(event_obj,'Position');
 
 output_txt=cell(size(metrics,2)+2,1);
 output_txt{1}=archLbls{archI};
-output_txt{2}='-----------';
+output_txt{2}=repmat('-', 1, ceil(length(output_txt{1})*1.2));
 for(i=1:size(metrics,2))
-    output_txt{i+1}=[metLbls{i},num2str(metrics(archI,i))];
+    output_txt{i+2}=[metLbls{i},num2str(metrics(archI,i))];
 end
 return
