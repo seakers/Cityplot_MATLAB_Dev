@@ -32,7 +32,7 @@ function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, cri
 %      'DesignLabels', cellArrayOfStrings with N cells : labels used when
 %         called with 'spew' or when clicking designs with the data cursor.
 %         Default just uses dist/criteria index.
-%      'CriteriaLabel' : labels used for labelling criteria when clicking
+%      'CriteriaLabels' : labels used for labelling criteria when clicking
 %         designs with the data cursor. Default just numbers criteria.
 %      'MdscaleOptArgs', cellArrayOfOptions : will use mdscale unless
 %         UseClassic is manually set to true. Will feed mdscale all options
@@ -45,6 +45,10 @@ function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, cri
 %      'BuildingProp', cellArrayOfOptions : specifies patch properties to
 %         use when rendering buildings. See doc patch properties for
 %         options to put into cellArrayOfOptions
+%      'BuildingColors', colors to cycle between when plotting buildings
+%         (criteria). Input as a colormap. Will use the colors in sequence
+%         by row until run out of colors in the colormap and then will
+%         cycle again from the top.
 %      'LegendCap', number : maximum number of buckets to use in creating
 %         the legend. Inputting <=0 will use a colorbar instead.
 %      'RoadLimit', number : limit on the number of roads to draw. Will
@@ -52,6 +56,8 @@ function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, cri
 %         Difference will be due to duplicate distance values. Default is
 %         based on the expected number of edges needed to create a single
 %         connected component in a random graph.
+%      'RoadColors', colormap : colors to use when plotting roads, as a
+%         colormap
 %      'Spew', spewOptions : adds additional data to points on the
 %         cityplot. Tends to make things extremely crowded (the plot looks
 %         like "spew"). Spew Options should be given as a cell array or strings 
@@ -65,15 +71,21 @@ function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, cri
 %
 %   for examples see included sample problems folder.
 
+%% possible improvements
+% -> find a way to fix the orientation and scaling of the plotted points so to help make things easy to replicate.
+% -> rescale plotting instead of capping building height such that the z axis always goes 0->1 and becomes intuitive.
+
 %% input parsing and validation.
 p=inputParser;
 addRequired(p,'dist',@isnumeric)
 addRequired(p,'criteria',@isnumeric)
 addParameter(p,'DesignLabels',arrayfun(@(num) ['design #',num2str(num)], 1:size(dist,1),'UniformOutput',false))
-addParameter(p,'CriteriaLabel',arrayfun(@(num) ['criteria #',num2str(num),': '], 1:size(criteria,2),'UniformOutput',false));
+addParameter(p,'CriteriaLabels',arrayfun(@(num) ['criteria #',num2str(num),': '], 1:size(criteria,2),'UniformOutput',false));
 addParameter(p,'Spew',[]);
 addParameter(p,'LegendCap', 16, @isnumeric);
-addParameter(p,'RoadLimit', [], @isnumeric);
+addParameter(p,'RoadColors', get(0, 'DefaultFigureColormap'))
+addParameter(p,'BuildingColors', 'brgkcy')
+addParameter(p,'RoadLimit', [], @(x) isnumeric(x) && isequal(fix(x), x));
 
 % mdscale and cmdscale poke through
 addParameter(p,'UseClassic',true);
@@ -156,9 +168,9 @@ end
 
 %% Build Roads
 if(any(strcmp(p.UsingDefaults, 'RoadLimit')))
-    plotRoads3d(axHandle, p.Results.dist, plotting, 'legendCap', 16);
+    plotRoads3d(axHandle, p.Results.dist, plotting, 'legendCap', 16, 'lineColors', p.Results.RoadColors);
 else
-    plotRoads3d(axHandle, p.Results.dist, plotting, 'legendCap', p.Results.LegendCap, 'targetConn', p.Results.RoadLimit);
+    plotRoads3d(axHandle, p.Results.dist, plotting, 'legendCap', p.Results.LegendCap, 'targetConn', p.Results.RoadLimit, 'lineColors', p.Results.RoadColors);
 end
 
 %% Build Skyscrapers
@@ -171,9 +183,9 @@ end
 pltOpts.BuildingHeight=BuildingHeight;
 
 if(any(strcmp(p.UsingDefaults,'BuildingProp')))
-    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight);
+    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight, 'colorCycle', p.Results.BuildingColors);
 else
-    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight,'BuildingProp',p.Results.BuildingProp);
+    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight,'BuildingProp',p.Results.BuildingProp, 'colorCycle', p.Results.BuildingColors);
 end
 
 %% set default view
@@ -183,16 +195,16 @@ campos(pltOpts.campos);
 
 %% standardize labels and set up data cursor
 archLbls=regularizeLbls(p.Results.DesignLabels,size(plotting,1));
-CriteriaLabel=regularizeLbls(p.Results.CriteriaLabel,size(p.Results.criteria,2));
+CriteriaLabels=regularizeLbls(p.Results.CriteriaLabels,size(p.Results.criteria,2));
 
 dataCursorHandle = datacursormode;
 set(dataCursorHandle,'DisplayStyle','window');
-set(dataCursorHandle,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plotting,1),1)],archLbls,CriteriaLabel,p.Results.criteria});
+set(dataCursorHandle,'UpdateFcn',{@cityplotDataCursor,[plotting,zeros(size(plotting,1),1)],archLbls,CriteriaLabels,p.Results.criteria});
 
 %% spew. ew.
 if(~any(strcmp(p.UsingDefaults, 'Spew')))
     spewOptions=ismember({'DesignLabels','CriteriaValues'},p.Results.Spew); % scalable way to check spew options
-    spewCell=cell(size(plotting,1),1);
+    spewCell=cell(size(archLbls));
 
     if(spewOptions(1))
         spewCell=cellfun(@(old, new) [old,new], spewCell, archLbls,'UniformOutput',false);
@@ -203,9 +215,9 @@ if(~any(strcmp(p.UsingDefaults, 'Spew')))
         end
         for i=1:size(spewCell,1) % add all criteria and corresponding labels as a line
             for j=1:(size(p.Results.criteria,2)-1)
-                spewCell{i}=[spewCell{i}, CriteriaLabel{j}, num2str(p.Results.criteria(i,j)), ','];
+                spewCell{i}=[spewCell{i}, CriteriaLabels{j}, num2str(p.Results.criteria(i,j)), ','];
             end
-            spewCell{i}=[spewCell{i}, CriteriaLabel{j+1}, num2str(p.Results.criteria(i,j+1))]; % omits ending seperator.
+            spewCell{i}=[spewCell{i}, CriteriaLabels{j+1}, num2str(p.Results.criteria(i,j+1))]; % omits ending seperator.
         end
     end
 

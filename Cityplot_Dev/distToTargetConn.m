@@ -15,7 +15,7 @@ function [filterDist]=distToTargetConn(distances, targetConn)
 %
 p=inputParser();
 addRequired(p, 'distances', @isnumeric);
-addOptional(p, 'targetConn', floor(size(distances,1)*log(size(distances,1))), @isnumeric);
+addOptional(p, 'targetConn', ceil(size(distances,1)*log(size(distances,1))), @(x) isnumeric(x) && isequal(fix(x),x));
 
 parse(p,distances, targetConn);
 

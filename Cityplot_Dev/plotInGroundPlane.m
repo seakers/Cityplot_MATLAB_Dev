@@ -81,6 +81,6 @@ for(i=1:size(dist,1))
     pt1=pointLocs(indx1,:);
     pt2=pointLocs(indx2,:);
     
-    plot3(handle,[pt1(1); pt2(1)], [pt1(2); pt2(2)], zeros(2,1), 'Color', colorToUse(i,:));
+    plot3(handle,[pt1(1); pt2(1)], [pt1(2); pt2(2)], zeros(2,1), 'Color', linearSaturate(colorToUse(i,:), 0, 1));
 end
 return
