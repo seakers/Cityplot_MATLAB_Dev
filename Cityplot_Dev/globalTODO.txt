@@ -1,0 +1,3 @@
+consider what happens if don't draw complete buildings but only one face, does it make things easier to read?
+Add building Colors to Legend.
+Be able to adjust normalization. Add normalization so minimization draws larger buildings naturally (by subtracting from max value instead of subtracting the minimum)
