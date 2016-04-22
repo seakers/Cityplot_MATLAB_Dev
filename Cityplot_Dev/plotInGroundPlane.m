@@ -70,6 +70,10 @@ end
 %% plot edges edge-by-edge
 dist=p.Results.distances;
 pointLocs=p.Results.plotLocs;
+if(any(isnan(dist(:,3))))
+    error('found NaN distances')
+end
+
 if(min(dist(:,3))==max(dist(:,3)))
     colorToUse=repmat(p.Results.lineColors(1,:),size(dist,1),1);
 else

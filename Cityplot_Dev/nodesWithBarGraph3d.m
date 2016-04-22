@@ -78,6 +78,7 @@ rectHeight=n_met.*repmat(heightLim,size(metrics,1),1); % scale all buildings so 
 
 %% plot nodes and bar graphs.
 ax_hndl=figurePlotAxes(handle);
+nancnt=0;
 for(i=1:size(plotting,1))
     switch numel(ax_hndl)
         case 0
@@ -89,10 +90,18 @@ for(i=1:size(plotting,1))
     end
 	
 	for(metI=1:size(metrics,2)) % skyscrapers
-		adjust=rectWidthX*(metI-1);
-        barPos=[plotting(i,1)+adjust,plotting(i,2),0];
-        barDim=[rectWidthX,rectWidthY,rectHeight(i,metI)];
-        drawBox3d(barPos,barDim,'FaceColor',p.Results.colorCycle(mod(metI-1,length(p.Results.colorCycle))+1),p.Results.buildingProp{:});
+		if(~isnan(rectHeight(i,metI)))
+            adjust=rectWidthX*(metI-1);
+            barPos=[plotting(i,1)+adjust,plotting(i,2),0];
+            barDim=[rectWidthX,rectWidthY,rectHeight(i,metI)];
+            drawBox3d(barPos,barDim,'FaceColor',p.Results.colorCycle(mod(metI-1,length(p.Results.colorCycle))+1),p.Results.buildingProp{:});
+        else
+            nancnt=nancnt+1;
+        end
 	end
+end
+
+if(nancnt>0)
+    warning(['encountered ',num2str(nancnt), ' NaNs in plot']);
 end
 return

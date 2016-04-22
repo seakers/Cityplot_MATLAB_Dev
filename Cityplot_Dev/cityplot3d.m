@@ -74,6 +74,7 @@ function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, cri
 %% possible improvements
 % -> find a way to fix the orientation and scaling of the plotted points so to help make things easy to replicate.
 % -> rescale plotting instead of capping building height such that the z axis always goes 0->1 and becomes intuitive.
+% -> Define behavior for NaN and inf. (Maybe NaN should just be ignored completely for normalization and drawing buildings?)
 
 %% input parsing and validation.
 p=inputParser;
@@ -84,7 +85,7 @@ addParameter(p,'CriteriaLabels',arrayfun(@(num) ['criteria #',num2str(num),': ']
 addParameter(p,'Spew',[]);
 addParameter(p,'LegendCap', 16, @isnumeric);
 addParameter(p,'RoadColors', get(0, 'DefaultFigureColormap'))
-addParameter(p,'BuildingColors', 'brgkcy')
+addParameter(p,'BuildingColors', 'brgkcym')
 addParameter(p,'RoadLimit', [], @(x) isnumeric(x) && isequal(fix(x), x));
 
 % mdscale and cmdscale poke through
@@ -196,6 +197,10 @@ campos(pltOpts.campos);
 %% standardize labels and set up data cursor
 archLbls=regularizeLbls(p.Results.DesignLabels,size(plotting,1));
 CriteriaLabels=regularizeLbls(p.Results.CriteriaLabels,size(p.Results.criteria,2));
+
+if(length(CriteriaLabels)~=size(p.Results.criteria,2))
+    error(['labels dimension mismatch with criteria: num labels: ', num2str(length(CriteriaLabels)), ', num criteria: ', num2str(size(p.Results.criteria,2)),'. also be sure have a different criteria value across a different column (dim 2) in criteria']);
+end
 
 dataCursorHandle = datacursormode;
 set(dataCursorHandle,'DisplayStyle','window');
