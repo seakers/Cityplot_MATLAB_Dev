@@ -35,6 +35,20 @@ function [handle]=plotRoads3d(handle, distances, plotLocs, varargin)
 %       single connected component in a random graph.
 %
 
+%% TODO: add the following so roads themselves are not in the legend:
+% from: http://www.mathworks.com/matlabcentral/answers/18448-excluding-legend-entries-in-plot
+% http://www.mathworks.com/matlabcentral/answers/406-how-do-i-skip-items-in-a-legend
+% Wow, this solution is much smoother than the other proposed, and more generally applicable.
+% 
+% It allows you to turn off the ones you don't want, rather than having to turn on the ones you do. If you (like me) are plotting many data sets on the same graph, this is much more useful and simple.
+% 
+% If you have the handle for the data set you DON'T want included, all you need is this line:
+% 
+% set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+% where "h" is changed to the name of your handle.
+% 
+% For more information, follow the link provided by Walter and John.
+
 %% input parsing and checking
 defClrMap=get(0, 'DefaultFigureColormap');
 
