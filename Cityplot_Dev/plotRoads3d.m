@@ -1,4 +1,4 @@
-function [handle]=plotRoads3d(handle, distances, plotLocs, varargin)
+function [handle]=plotRoads3d(handle, distances, varargin)
 % plotRoads3d plots the roads for a cityplot with roads colored to
 % correspond to the distances and includes options and color labels.
 %
@@ -57,7 +57,7 @@ addRequired(p, 'distances')
 addRequired(p, 'plotLocs')
 addParameter(p, 'lineColors', defClrMap);
 addParameter(p, 'legendCap', 0);
-addParameter(p, 'targetConn', ceil(size(plotLocs,1)*log(size(plotLocs,1))), @isnumeric);
+addParameter(p, 'targetConn', 0, @isnumeric);
 
 switch nargin
     case 1
@@ -66,7 +66,7 @@ switch nargin
         parse(p,handle,distances);
         handle=gcf();
     case {3, 5, 7, 9}
-        parse(p,distances, plotLocs, varargin{:});
+        parse(p,distances, varargin{:});
     otherwise
         error('too many inputs to plotInGroundPlane');
 end
@@ -78,8 +78,13 @@ if(~(all(size(handle)==[1,1]) && isgraphics(handle)))
     end
 end
 
-%% filter distances to plot
-filterDist=distToTargetConn(distances, p.Results.targetConn);
+%% filter distances to plot and set default target connections.
+if(any(strcmp(p.UsingDefaults, 'targetConn')))
+    targetConn=ceil(size(p.Results.distances,1)*log(size(p.Results.distances,1)));
+else
+    targetConn=p.Results.targetConn;
+end
+filterDist=distToTargetConn(p.Results.distances, targetConn);
 if(isempty(filterDist))
     warning('targetConn too small, failed to include any distances')
 else

@@ -8,6 +8,7 @@ ax=findall(figHandle,'type', 'axes');
 if(~isempty(ax))
     primaryAxes=ax(~ismember(get(ax,'Tag'),{'legend','colorbar'}));
 else
-    primaryAxes=ax;
+    set(0, 'CurrentFigure', figHandle);
+    primaryAxes=axes();
 end
 return

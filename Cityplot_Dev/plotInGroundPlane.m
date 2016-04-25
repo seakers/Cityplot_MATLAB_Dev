@@ -20,11 +20,11 @@ function handle=plotInGroundPlane(handle, plotLocs, distances, lineColors, varar
 %    'spline'}. See help interp1 for more information on each option.
 %
 % plotInGroundPlane(h, ___) plots on the input figure or axes handle.
-% 
+%
 % h=plotInGroundPlane(___) returns the handle used for plotting.
 %
 % plotRoads3d(__, option1Str, option1val, ...) gives options as follows:
-%    
+%
 %
 
 %% input parsing and checking
@@ -48,6 +48,7 @@ switch nargin
     case {3,5} % one optional.
         if(all(size(handle)==[1,1]) && isgraphics(handle))
             parse(p,plotLocs, distances, varargin{:});
+            handle=figurePlotAxes(handle);
         else
             parse(p,handle,plotLocs, distances, varargin{:})
             handle=figurePlotAxes(gcf());
@@ -55,16 +56,16 @@ switch nargin
     case 4
         if(all(size(handle)==[1,1]) && isgraphics(handle))
             parse(p,plotLocs,distances,lineColors);
+            handle=figurePlotAxes(handle);
         else
             parse(p,handle,plotLocs,distances,lineColors)
+            handle=figurePlotAxes(handle);
         end
     case 6
         parse(p,plotLocs,distances, lineColors, varargin{:});
+        handle=figurePlotAxes(handle);
     otherwise
         error('too many inputs to plotInGroundPlane');
-end
-if(~(all(size(handle)==[1,1]) && isgraphics(handle)))
-    error('figure handle is not a figure handle')
 end
 
 %% plot edges edge-by-edge
@@ -84,7 +85,13 @@ for(i=1:size(dist,1))
     indx2=dist(i,2);
     pt1=pointLocs(indx1,:);
     pt2=pointLocs(indx2,:);
-    
-    plot3(handle,[pt1(1); pt2(1)], [pt1(2); pt2(2)], zeros(2,1), 'Color', linearSaturate(colorToUse(i,:), 0, 1));
+    switch numel(handle)
+        case 0
+            plot3([pt1(1); pt2(1)], [pt1(2); pt2(2)], zeros(2,1), 'Color', linearSaturate(colorToUse(i,:), 0, 1)); %city marker
+        case 1
+            plot3(handle, [pt1(1); pt2(1)], [pt1(2); pt2(2)], zeros(2,1), 'Color', linearSaturate(colorToUse(i,:), 0, 1)); %city marker
+        otherwise
+            error('multiple axes to plot detected. Not supported');
+    end
 end
 return

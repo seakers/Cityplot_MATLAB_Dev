@@ -71,8 +71,8 @@ end
 xrange=range(plotting(:,1));
 yrange=range(plotting(:,2));
 
-rectWidthX=xrange/60;
-rectWidthY=yrange/60;
+rectWidthX=xrange/90;
+rectWidthY=yrange/90;
 n_met=metrics./repmat(max(metrics,[],1),size(metrics,1),1); % shrink all metrics uniformly by largest to insure will get same height.
 rectHeight=n_met.*repmat(heightLim,size(metrics,1),1); % scale all buildings so tallest is at height limit for each objective.
 
