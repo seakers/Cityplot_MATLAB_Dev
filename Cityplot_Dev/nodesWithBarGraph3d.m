@@ -94,7 +94,12 @@ for(i=1:size(plotting,1))
             adjust=rectWidthX*(metI-1);
             barPos=[plotting(i,1)+adjust,plotting(i,2),0];
             barDim=[rectWidthX,rectWidthY,rectHeight(i,metI)];
-            drawBox3d(barPos,barDim,'FaceColor',p.Results.colorCycle(mod(metI-1,length(p.Results.colorCycle))+1),p.Results.buildingProp{:});
+            if(any(size(p.Results.colorCycle)==1))
+                thisColor=p.Results.colorCycle(mod(metI-1,length(p.Results.colorCycle))+1);
+            else
+                thisColor=p.Results.colorCycle(mod(metI-1,length(p.Results.colorCycle))+1,:);
+            end
+            drawBox3d(barPos,barDim,'FaceColor',thisColor,p.Results.buildingProp{:});
         else
             nancnt=nancnt+1;
         end
