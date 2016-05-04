@@ -1,4 +1,4 @@
-function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, criteria, varargin)
+function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, varargin)
 %cityplot3d create cityplot of input distances with input objectives.
 %  Average distances are preserved as much as possible while reducing to a 2d
 %  ground plane with euclidean distance and the criteria are plotting as a
@@ -81,7 +81,7 @@ p=inputParser;
 addRequired(p,'dist',@isnumeric)
 addRequired(p,'criteria',@isnumeric)
 addParameter(p,'DesignLabels',arrayfun(@(num) ['design #',num2str(num)], 1:size(dist,1),'UniformOutput',false))
-addParameter(p,'CriteriaLabels',arrayfun(@(num) ['criteria #',num2str(num),': '], 1:size(criteria,2),'UniformOutput',false));
+addParameter(p,'CriteriaLabels',[]);
 addParameter(p,'Spew',[]);
 addParameter(p,'LegendCap', 16, @isnumeric);
 addParameter(p,'RoadColors', get(0, 'DefaultFigureColormap'))
@@ -109,7 +109,7 @@ if(all(size(h)==[1,1]) && all(isgraphics(h(:)))) % can't handle multiple figure 
         case 2
             error('insufficent number of arguments to use cityplot3d with a figure handle call');
         otherwise
-            effArgList={dist,criteria,varargin{:}};
+            effArgList={dist,varargin{:}};
     end
     defFig=false;
 else
@@ -119,7 +119,7 @@ else
         case 2
             effArgList={h,dist};
         otherwise
-            effArgList={h,dist,criteria,varargin{:}};
+            effArgList={h,dist,varargin{:}};
     end
     
     h=gcf();
@@ -130,6 +130,12 @@ if(numel(axHandle)>=2)
     error('ambiguous axis handle to plot onto');
 end
 parse(p,effArgList{:});
+
+if(any(strcmp(p.UsingDefaults,'CriteriaLabels')))
+    criteriaLabelsIn=arrayfun(@(num) ['criteria #',num2str(num),': '], 1:size(p.Results.criteria,2),'UniformOutput',false);
+else
+    criteriaLabelsIn=p.Results.CriteriaLabels;
+end
 
 %% normalization
 nCriteria=p.Results.criteria-repmat(min(p.Results.criteria,[],1),size(p.Results.criteria,1),1);
@@ -196,7 +202,7 @@ campos(pltOpts.campos);
 
 %% standardize labels and set up data cursor
 archLbls=regularizeLbls(p.Results.DesignLabels,size(plotting,1));
-CriteriaLabels=regularizeLbls(p.Results.CriteriaLabels,size(p.Results.criteria,2));
+CriteriaLabels=regularizeLbls(criteriaLabelsIn,size(p.Results.criteria,2));
 
 if(length(CriteriaLabels)~=size(p.Results.criteria,2))
     error(['labels dimension mismatch with criteria: num labels: ', num2str(length(CriteriaLabels)), ', num criteria: ', num2str(size(p.Results.criteria,2)),'. also be sure have a different criteria value across a different column (dim 2) in criteria']);
