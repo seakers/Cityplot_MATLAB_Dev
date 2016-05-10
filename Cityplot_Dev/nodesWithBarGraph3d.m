@@ -30,6 +30,7 @@ addRequired(p,'metrics', @isnumeric);
 addRequired(p,'heightLim', @isnumeric);
 addParameter(p,'colorCycle',['brgkcy']');
 addParameter(p,'buildingProp',cell(0));
+addParameter(p,'transparency', NaN)
 
 switch nargin
     case {0,1,2}
@@ -67,6 +68,12 @@ else
     error('how''d we get here?!?!');
 end
 
+if(any(strcmp(p.UsingDefaults,'transparency')))
+    bTrans=ones(size(plotting,1),1);
+else
+    bTrans=p.Results.transparency;
+end
+
 %% set bar graph parameters and find heights
 xrange=range(plotting(:,1));
 yrange=range(plotting(:,2));
@@ -99,7 +106,7 @@ for(i=1:size(plotting,1))
             else
                 thisColor=p.Results.colorCycle(mod(metI-1,length(p.Results.colorCycle))+1,:);
             end
-            drawBox3d(barPos,barDim,'FaceColor',thisColor,p.Results.buildingProp{:});
+            drawBox3d(barPos,barDim,'FaceColor',thisColor,'FaceAlpha', bTrans(i), 'EdgeAlpha', bTrans(i), p.Results.buildingProp{:});
         else
             nancnt=nancnt+1;
         end

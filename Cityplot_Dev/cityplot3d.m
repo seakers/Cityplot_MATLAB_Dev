@@ -46,9 +46,11 @@ function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, var
 %         use when rendering buildings. See doc patch properties for
 %         options to put into cellArrayOfOptions
 %      'BuildingColors', colors to cycle between when plotting buildings
-%         (criteria). Input as a colormap. Will use the colors in sequence
-%         by row until run out of colors in the colormap and then will
-%         cycle again from the top.
+%         (criteria). Input as a colormap or a string of color codes. 
+%         Will use the colors in sequence by row until run out of colors 
+%         in the colormap and then will cycle again from the top.
+%      'BuildingTransparency', array of values between 0 and 1 : specifies
+%         the transparency of buildings at each design.
 %      'LegendCap', number : maximum number of buckets to use in creating
 %         the legend. Inputting <=0 will use a colorbar instead.
 %      'RoadLimit', number : limit on the number of roads to draw. Will
@@ -87,6 +89,7 @@ addParameter(p,'LegendCap', 16, @isnumeric);
 addParameter(p,'RoadColors', get(0, 'DefaultFigureColormap'))
 addParameter(p,'BuildingColors', 'brgkcym')
 addParameter(p,'RoadLimit', [], @(x) isnumeric(x) && isequal(fix(x), x));
+addParameter(p,'BuildingTransparency', NaN)
 
 % mdscale and cmdscale poke through
 addParameter(p,'UseClassic',true);
@@ -137,6 +140,12 @@ else
     criteriaLabelsIn=p.Results.CriteriaLabels;
 end
 
+if(any(strcmp(p.UsingDefaults,'BuildingTransparency')))
+    bTrans=ones(size(p.Results.dist,1),1);
+else
+    bTrans=p.Results.BuildingTransparency;
+end
+    
 %% normalization
 nCriteria=p.Results.criteria-repmat(min(p.Results.criteria,[],1),size(p.Results.criteria,1),1);
 nCriteria=nCriteria./repmat(max(nCriteria,[],1),size(nCriteria,1),1);
@@ -190,9 +199,9 @@ end
 pltOpts.BuildingHeight=BuildingHeight;
 
 if(any(strcmp(p.UsingDefaults,'BuildingProp')))
-    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight, 'colorCycle', p.Results.BuildingColors);
+    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight, 'colorCycle', p.Results.BuildingColors,'transparency', bTrans);
 else
-    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight,'BuildingProp',p.Results.BuildingProp, 'colorCycle', p.Results.BuildingColors);
+    nodesWithBarGraph3d(axHandle,plotting,nCriteria,BuildingHeight,'BuildingProp',p.Results.BuildingProp, 'colorCycle', p.Results.BuildingColors,'transparency', bTrans);
 end
 
 %% set default view
