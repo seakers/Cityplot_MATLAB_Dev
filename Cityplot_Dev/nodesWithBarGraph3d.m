@@ -22,6 +22,8 @@ function handle=nodesWithBarGraph3d(handle, plotting, metrics, heightLim,varargi
 %   'BuildingProp', cellArrayOfOptions : specifies patch properties to use 
 %      when rendering buildings. See doc patch properties for options to 
 %      put into cellArrayOfOptions
+%   'transparency', vector of [0,1] : transparency level of each city. 1 is
+%      oapque, 0 is fully invisible
 
 %% parse inputs and error checking.
 p=inputParser();
