@@ -16,7 +16,13 @@ pos=get(event_obj,'Position');
 
 output_txt=cell(size(metrics,2)+2,1);
 output_txt{1}=archLbls{archI};
-output_txt{2}=repmat('-', 1, ceil(length(output_txt{1})*1.2));
+lengthToPump=length(output_txt{1}*1.2);
+[newLineLocs]=regexp(output_txt{1}, '\r\n|\n|\r');
+if(~isempty(newLineLocs))
+    newLineLengths=diff([newLineLocs,length(output_txt{1})]);
+    lengthToPump=max(newLineLengths);
+end
+output_txt{2}=repmat('-', 1, ceil(lengthToPump));
 for(i=1:size(metrics,2))
     output_txt{i+2}=[metLbls{i},num2str(metrics(archI,i))];
 end

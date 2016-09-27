@@ -51,6 +51,16 @@ function [h, plotting,nCriteria,pltOpts,dataCursorHandle]=cityplot3d(h,dist, var
 %         in the colormap and then will cycle again from the top.
 %      'BuildingTransparency', array of values between 0 and 1 : specifies
 %         the transparency of buildings at each design.
+%      'NormalizationCallback', a function which takes a matrix where each
+%         row is a data element and each column is a criteria. returns the 
+%         values with some kind of normalization for plotting building
+%         heights. The identity function will avoid normalizing.
+%         default is scaling to 0-1 according to the equation 
+%         (v is a data element, i is the ith criteria value for that element):
+%         vNormed_i=(v_i - min({v_i | v in toNorm}))...
+%                      /(max({v_i | v intoNorm})-min({v_i | v in toNorm})))
+%         see the normMinMax function for an example header for custom
+%         functions
 %      'LegendCap', number : maximum number of buckets to use in creating
 %         the legend. Inputting <=0 will use a colorbar instead.
 %      'RoadLimit', number : limit on the number of roads to draw. Will
@@ -90,6 +100,7 @@ addParameter(p,'RoadColors', get(0, 'DefaultFigureColormap'))
 addParameter(p,'BuildingColors', 'brgkcym')
 addParameter(p,'RoadLimit', [], @(x) isnumeric(x) && isequal(fix(x), x));
 addParameter(p,'BuildingTransparency', NaN)
+addParameter(p,'NormalizationCallback', @normMinMax)
 
 % mdscale and cmdscale poke through
 addParameter(p,'UseClassic',true);
@@ -147,8 +158,7 @@ else
 end
     
 %% normalization
-nCriteria=p.Results.criteria-repmat(min(p.Results.criteria,[],1),size(p.Results.criteria,1),1);
-nCriteria=nCriteria./repmat(max(nCriteria,[],1),size(nCriteria,1),1);
+nCriteria=p.Results.NormalizationCallback(p.Results.criteria);
 
 %% get the city locations with mdscale
 set(axHandle,'Visible','off'); %don't render to save time.
